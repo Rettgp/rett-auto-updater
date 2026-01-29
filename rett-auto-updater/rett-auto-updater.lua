@@ -12,7 +12,6 @@ local https = require('ssl.https')
 local ltn12 = require('ltn12')
 local files = require('files')
 
--- Update these to point to your actual GitHub repository
 local GITHUB_USER = 'Rettgp'
 local GITHUB_REPO = 'ffxi-addons'
 local MANIFEST_URL = string.format('https://github.com/%s/%s/releases/download/latest/manifest.json', GITHUB_USER, GITHUB_REPO)
@@ -73,10 +72,8 @@ local function update_addon(addon_name, download_url, is_new_install)
     
     windower.add_to_chat(207, ('[rett-auto-updater] Extracting %s...'):format(addon_name))
     
-    -- Create temp extraction directory
     os.execute('mkdir "' .. temp_extract .. '" 2>nul')
     
-    -- Extract zip using PowerShell (available on Windows)
     local extract_cmd = string.format('powershell -command "Expand-Archive -Path \'%s\' -DestinationPath \'%s\' -Force"', temp_zip, temp_extract)
     local extract_result = os.execute(extract_cmd)
     
@@ -87,12 +84,9 @@ local function update_addon(addon_name, download_url, is_new_install)
         return
     end
     
-    -- Create addon directory if it doesn't exist
     os.execute('mkdir "' .. addon_path .. '" 2>nul')
     
-    -- Copy new files over existing ones (preserves user data not in the update)
     windower.add_to_chat(207, ('[rett-auto-updater] Installing %s...'):format(addon_name))
-    -- Use xcopy to replace existing files and add new ones, but keep user files not in the update
     local copy_result = os.execute('xcopy "' .. temp_extract .. addon_name .. '\\*" "' .. addon_path .. '" /E /Y /I >nul 2>&1')
     
     if copy_result ~= 0 then
@@ -102,11 +96,9 @@ local function update_addon(addon_name, download_url, is_new_install)
         return
     end
     
-    -- Clean up
     os.remove(temp_zip)
     os.execute('rmdir /S /Q "' .. temp_extract .. '" 2>nul')
     
-    -- Reload or load the addon
     if is_new_install then
         windower.send_command('lua load ' .. addon_name)
     else
@@ -135,7 +127,6 @@ local function get_manifest()
                 return nil
             end
             
-            -- Detect redirect loop (same URL)
             if new_url == url or new_url == previous_url then
                 error('[rett-auto-updater] Redirect loop detected - socket.http may not support HTTPS. Try using a different manifest URL.')
                 return nil
@@ -177,7 +168,6 @@ windower.register_event('load', function()
     
     for addon_name, remote_info in pairs(manifest.addons or {}) do
         local local_version = get_local_version(addon_name)
-        -- Construct download URL: same pattern as manifest but with addon-name-vX.Y.Z.zip
         local download_url = string.format('https://github.com/%s/%s/releases/download/latest/%s-v%s.zip', GITHUB_USER, GITHUB_REPO, addon_name, remote_info.version)
         
         if not local_version then
