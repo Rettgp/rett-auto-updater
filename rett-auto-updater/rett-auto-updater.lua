@@ -3,7 +3,7 @@
 -- Author: Rettgp
 
 _addon.name = 'rett-auto-updater'
-_addon.version = '1.0.0'
+_addon.version = '1.1.0'
 _addon.author = 'Rettgp'
 _addon.commands = { 'rettautoupdater', 'rettau' }
 
